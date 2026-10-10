@@ -73,13 +73,62 @@
     <p id="mensaje" role="status"></p>
   </main>
 
-  <script>
-    document.getElementById("login")
-      .addEventListener("submit", (evento) => {
-        evento.preventDefault();
-        document.getElementById("mensaje").textContent =
-          "Pantalla creada. Falta conectar la autenticación segura.";
-      });
+<script type="module">
+  import { createClient } from
+    "https://esm.sh/@supabase/supabase-js@2";
+
+  const supabaseUrl =
+    "https://xfzffvughevcdioqqwev.supabase.co";
+
+  const supabaseKey =
+    "sb_publishable_117jiDznI5BbuT9SpwQPmA_yNNHvNI6";
+
+  const supabase = createClient(
+    supabaseUrl,
+    supabaseKey
+  );
+
+  const mensaje = document.getElementById("mensaje");
+
+  document.getElementById("login")
+    .addEventListener("submit", async (evento) => {
+      evento.preventDefault();
+
+      const email =
+        document.getElementById("correo").value;
+
+      const password =
+        document.getElementById("password").value;
+
+      mensaje.textContent = "Verificando acceso...";
+
+      const { data, error } =
+        await supabase.auth.signInWithPassword({
+          email,
+          password
+        });
+
+      if (error) {
+        mensaje.textContent =
+          "Correo o contraseña incorrectos.";
+        return;
+      }
+
+      const { data: autorizado, error: errorAdmin } =
+        await supabase.rpc("es_admin");
+
+      if (errorAdmin || autorizado !== true) {
+        await supabase.auth.signOut();
+        mensaje.textContent =
+          "Esta cuenta no tiene acceso administrativo.";
+        return;
+      }
+
+      mensaje.textContent =
+        "Acceso autorizado. Bienvenida a Nouvelle.";
+    });
+</script>
+
   </script>
 </body>
 </html>
