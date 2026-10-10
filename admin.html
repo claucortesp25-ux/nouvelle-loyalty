@@ -147,11 +147,61 @@ panel.appendChild(titulo);
 const lista = document.createElement("div");
 panel.appendChild(lista);
 
+
 for (const clienta of clientas ?? []) {
-  const fila = document.createElement("p");
-  fila.textContent =
+  const fila = document.createElement("div");
+  fila.style.marginBottom = "20px";
+
+  const info = document.createElement("p");
+  info.textContent =
     `${clienta.nombre} — ${clienta.sellos} de 10 sellos`;
+
+  const agregar = document.createElement("button");
+  agregar.textContent = "+ Agregar sello";
+
+  const quitar = document.createElement("button");
+  quitar.textContent = "− Quitar sello";
+  quitar.style.marginLeft = "10px";
+
+  async function cambiarSello(cambio) {
+    agregar.disabled = true;
+    quitar.disabled = true;
+
+    try {
+      const { data, error } = await supabase.rpc(
+        "admin_actualizar_sellos",
+        {
+          p_clienta_id: clienta.id,
+          p_cambio: cambio
+        }
+      );
+
+      if (error) throw error;
+
+      clienta.sellos = data;
+      info.textContent =
+        `${clienta.nombre} — ${data} de 10 sellos`;
+    } catch (error) {
+      console.error(error);
+      alert("No se pudo modificar el sello.");
+    } finally {
+      agregar.disabled = clienta.sellos >= 10;
+      quitar.disabled = clienta.sellos <= 0;
+    }
+  }
+
+  agregar.addEventListener("click", () => cambiarSello(1));
+  quitar.addEventListener("click", () => cambiarSello(-1));
+
+  agregar.disabled = clienta.sellos >= 10;
+  quitar.disabled = clienta.sellos <= 0;
+
+  fila.appendChild(info);
+  fila.appendChild(agregar);
+  fila.appendChild(quitar);
   lista.appendChild(fila);
+}
+
 }
 
 mensaje.insertAdjacentElement("afterend", panel);
