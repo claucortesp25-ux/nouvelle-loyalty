@@ -153,6 +153,57 @@
       sello.innerHTML = "✿<small>" + i + "</small>";
       contenedor.appendChild(sello);
     }
+    
+const botonConsultar = document.getElementById("botonConsultar");
+const codigoTarjeta = document.getElementById("codigoTarjeta");
+const mensajeConsulta = document.getElementById("mensajeConsulta");
+const nombreClienta = document.getElementById("nombreClienta");
+
+botonConsultar.addEventListener("click", async () => {
+  const codigo = codigoTarjeta.value.trim();
+
+  if (!codigo) {
+    mensajeConsulta.textContent = "Ingresa tu código único.";
+    return;
+  }
+
+  botonConsultar.disabled = true;
+  mensajeConsulta.textContent = "Consultando tu tarjeta...";
+  nombreClienta.textContent = "";
+
+  try {
+    const respuesta = await fetch(
+      "https://xfzffvughevcdioqqwev.supabase.co/functions/v1/consultar-tarjeta",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({ codigo })
+      }
+    );
+
+    const datos = await respuesta.json();
+
+    if (!respuesta.ok) {
+      throw new Error(datos.error || "No se pudo consultar la tarjeta");
+    }
+
+    nombreClienta.textContent = "Bienvenida, " + datos.nombre;
+    mensajeConsulta.textContent = "Tienes " + datos.sellos + " de 10 sellos.";
+
+    document.querySelectorAll(".sello").forEach((sello, indice) => {
+      sello.style.backgroundColor =
+        indice < datos.sellos ? "#a77688" : "";
+    });
+
+  } catch (error) {
+    mensajeConsulta.textContent = error.message;
+  } finally {
+    botonConsultar.disabled = false;
+  }
+});
+
   </script>
 </body>
 </html>
