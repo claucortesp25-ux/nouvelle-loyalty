@@ -93,21 +93,6 @@ async function verificarAdministradora() {
 
   return data === true;
 }
-     
-const { data: clientas, error } =
-  await supabase.rpc("admin_listar_clientas");
-
-const { data: historialCanjes, error: errorCanjes } =
-  await supabase.rpc("admin_listar_canjes");
-
-if (errorCanjes) {
-  console.error("Error al consultar canjes:", errorCanjes);
-  $("mensajeLista").textContent =
-    "No se pudo consultar el historial de recompensas.";
-  return;
-}
-      return !error && data === true;
-    }
 
     async function copiarEnlace(codigo, boton) {
       if (!codigo) return;
