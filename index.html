@@ -7,203 +7,133 @@
   <title>Nouvelle | Tarjeta de Lealtad</title>
   <style>
     * { box-sizing: border-box; }
-    body {
-      margin: 0;
-      background: #faf7f5;
-      color: #51454a;
-      font-family: Arial, sans-serif;
-    }
-    header {
-      background: white;
-      padding: 25px;
-      text-align: center;
-      border-bottom: 1px solid #e9dfe0;
-    }
+    body { margin: 0; background: #faf7f5; color: #51454a; font-family: Arial, sans-serif; }
+    header { background: white; padding: 25px; text-align: center; border-bottom: 1px solid #e9dfe0; }
     h1, h2 { font-family: Georgia, serif; }
     h1 { letter-spacing: 4px; margin-bottom: 5px; }
     .subtitulo { font-size: 12px; letter-spacing: 2px; }
     main { max-width: 650px; margin: 45px auto; padding: 20px; }
     .intro { text-align: center; margin-bottom: 35px; }
     .intro p { color: #aa7c8c; font-style: italic; }
-    .tarjeta {
-      background: white;
-      border: 1px solid #eadde0;
-      border-radius: 20px;
-      padding: 30px;
-      box-shadow: 0 8px 25px #49313a0d;
-    }
-    .sellos {
-      display: grid;
-      grid-template-columns: repeat(5, 1fr);
-      gap: 12px;
-      margin: 25px 0;
-    }
-    .sello {
-      aspect-ratio: 1;
-      border: 1px solid #d9c2ca;
-      border-radius: 50%;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      font-size: 20px;
-      color: #a77688;
-    }
+    .tarjeta { background: white; border: 1px solid #eadde0; border-radius: 20px; padding: 30px; box-shadow: 0 8px 25px #49313a0d; }
+    .sellos { display: grid; grid-template-columns: repeat(5, 1fr); gap: 12px; margin: 25px 0; }
+    .sello { aspect-ratio: 1; border: 1px solid #d9c2ca; border-radius: 50%; display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: 20px; color: #a77688; }
     .sello small { font-size: 10px; margin-top: 4px; }
-    .premios {
-      display: grid;
-      grid-template-columns: repeat(2, 1fr);
-      gap: 12px;
-      margin-top: 25px;
-    }
-    .premio {
-      background: #f7edef;
-      border-radius: 12px;
-      padding: 18px;
-      text-align: center;
-    }
-    .premio strong {
-      display: block;
-      font-size: 25px;
-      color: #a77688;
-    }
+    .sello.marcado { background: #a77688; color: white; }
+    .premios { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; margin-top: 25px; }
+    .premio { background: #f7edef; border-radius: 12px; padding: 18px; text-align: center; }
+    .premio strong { display: block; font-size: 25px; color: #a77688; }
     .premio span { font-size: 12px; }
-    footer {
-      text-align: center;
-      padding: 30px;
-      font-size: 12px;
-      color: #9b8990;
-    }
+    footer { text-align: center; padding: 30px; font-size: 12px; color: #9b8990; }
+    #codigoTarjeta { width: 100%; padding: 14px; margin-top: 12px; border: 1px solid #d8cbd2; border-radius: 10px; }
+    #botonConsultar { margin-top: 12px; padding: 14px 25px; background: #a77688; color: white; border: none; border-radius: 10px; cursor: pointer; }
+    #botonConsultar:disabled { opacity: .6; cursor: wait; }
+    @media (max-width: 430px) { .tarjeta { padding: 20px 14px; } .sellos { gap: 7px; } .sello { font-size: 17px; } .premio { padding: 13px 8px; } }
   </style>
 </head>
 <body>
   <header>
     <h1>NOUVELLE</h1>
-    <div class="subtitulo">SPA & MEDICINA ESTÉTICA</div>
+    <div class="subtitulo">SPA &amp; MEDICINA ESTÉTICA</div>
   </header>
-
   <main>
     <div class="intro">
       <div>TU BELLEZA, CELEBRADA</div>
       <h2>Tu tarjeta de lealtad Nouvelle</h2>
       <p>La belleza de ser tú</p>
     </div>
-
     <section class="tarjeta">
       <h2>Mi tarjeta Nouvelle</h2>
       <p>10 servicios, beneficios especiales para ti.</p>
-      
-<div style="margin: 25px 0; text-align: center;">
-  <label for="codigoTarjeta">Consulta tu tarjeta de lealtad</label>
-
-  <input
-    type="text"
-    id="codigoTarjeta"
-    placeholder="Ingresa tu código único"
-    autocomplete="off"
-    style="width: 100%; padding: 14px; margin-top: 12px; border: 1px solid #d8cbd2; border-radius: 10px;"
-  >
-
-  <button
-    type="button"
-    id="botonConsultar"
-    style="margin-top: 12px; padding: 14px 25px; background: #a77688; color: white; border: none; border-radius: 10px; cursor: pointer;"
-  >
-    Consultar mi tarjeta
-  </button>
-
-  <p id="mensajeConsulta" role="status" aria-live="polite"></p>
-  <h3 id="nombreClienta"></h3>
-</div>
-
-
+      <div style="margin: 25px 0; text-align: center;">
+        <div id="entradaCodigo">
+          <label for="codigoTarjeta">Consulta tu tarjeta de lealtad</label>
+          <input type="text" id="codigoTarjeta" placeholder="Ingresa tu código único" autocomplete="off">
+          <button type="button" id="botonConsultar">Consultar mi tarjeta</button>
+        </div>
+        <p id="mensajeConsulta" role="status" aria-live="polite"></p>
+        <h3 id="nombreClienta"></h3>
+      </div>
       <div class="sellos" id="sellos"></div>
-
       <h2>Tus recompensas</h2>
       <div class="premios">
-        <div class="premio">
-          <strong>10%</strong>
-          <span>Descuento en servicio 2</span>
-        </div>
-        <div class="premio">
-          <strong>15%</strong>
-          <span>Descuento en servicio 5</span>
-        </div>
-        <div class="premio">
-          <strong>10%</strong>
-          <span>Descuento en servicio 8</span>
-        </div>
-        <div class="premio">
-          <strong>50%</strong>
-          <span>Descuento en servicio 10</span>
-        </div>
+        <div class="premio"><strong>10%</strong><span>Descuento en servicio 2</span></div>
+        <div class="premio"><strong>15%</strong><span>Descuento en servicio 5</span></div>
+        <div class="premio"><strong>10%</strong><span>Descuento en servicio 8</span></div>
+        <div class="premio"><strong>50%</strong><span>Descuento en servicio 10</span></div>
       </div>
     </section>
   </main>
-
-  <footer>
-    NOUVELLE · SPA & MEDICINA ESTÉTICA
-  </footer>
-
+  <footer>NOUVELLE · SPA &amp; MEDICINA ESTÉTICA</footer>
   <script>
     const contenedor = document.getElementById("sellos");
     for (let i = 1; i <= 10; i++) {
       const sello = document.createElement("div");
       sello.className = "sello";
-      sello.innerHTML = "✿<small>" + i + "</small>";
+      sello.textContent = "✿";
+      const numero = document.createElement("small");
+      numero.textContent = i;
+      sello.appendChild(numero);
       contenedor.appendChild(sello);
     }
-    
-const botonConsultar = document.getElementById("botonConsultar");
-const codigoTarjeta = document.getElementById("codigoTarjeta");
-const mensajeConsulta = document.getElementById("mensajeConsulta");
-const nombreClienta = document.getElementById("nombreClienta");
 
-botonConsultar.addEventListener("click", async () => {
-  const codigo = codigoTarjeta.value.trim();
+    const botonConsultar = document.getElementById("botonConsultar");
+    const codigoTarjeta = document.getElementById("codigoTarjeta");
+    const mensajeConsulta = document.getElementById("mensajeConsulta");
+    const nombreClienta = document.getElementById("nombreClienta");
+    const entradaCodigo = document.getElementById("entradaCodigo");
 
-  if (!codigo) {
-    mensajeConsulta.textContent = "Ingresa tu código único.";
-    return;
-  }
-
-  botonConsultar.disabled = true;
-  mensajeConsulta.textContent = "Consultando tu tarjeta...";
-  nombreClienta.textContent = "";
-
-  try {
-    const respuesta = await fetch(
-      "https://xfzffvughevcdioqqwev.supabase.co/functions/v1/consultar-tarjeta",
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify({ codigo })
+    async function consultarTarjeta(codigo, desdeEnlace = false) {
+      if (!codigo) {
+        mensajeConsulta.textContent = "Ingresa tu código único.";
+        return;
       }
-    );
-
-    const datos = await respuesta.json();
-
-    if (!respuesta.ok) {
-      throw new Error(datos.error || "No se pudo consultar la tarjeta");
+      botonConsultar.disabled = true;
+      mensajeConsulta.textContent = "Consultando tu tarjeta...";
+      nombreClienta.textContent = "";
+      document.querySelectorAll(".sello").forEach(sello => sello.classList.remove("marcado"));
+      try {
+        const respuesta = await fetch(
+          "https://xfzffvughevcdioqqwev.supabase.co/functions/v1/consultar-tarjeta",
+          {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ codigo })
+          }
+        );
+        const datos = await respuesta.json();
+        if (!respuesta.ok) throw new Error(datos.error || "No se pudo consultar la tarjeta");
+        const sellos = Number(datos.sellos);
+        if (!Number.isInteger(sellos) || sellos < 0 || sellos > 10) {
+          throw new Error("No se pudo interpretar el número de sellos.");
+        }
+        nombreClienta.textContent = "Bienvenida, " + datos.nombre;
+        mensajeConsulta.textContent = "Tienes " + sellos + " de 10 sellos.";
+        document.querySelectorAll(".sello").forEach((sello, indice) => {
+          sello.classList.toggle("marcado", indice < sellos);
+        });
+        if (desdeEnlace) entradaCodigo.hidden = true;
+      } catch (error) {
+        mensajeConsulta.textContent = error.message || "No se pudo consultar la tarjeta.";
+        // Si falla el enlace, permitir escribir el código manualmente.
+        entradaCodigo.hidden = false;
+      } finally {
+        botonConsultar.disabled = false;
+      }
     }
 
-    nombreClienta.textContent = "Bienvenida, " + datos.nombre;
-    mensajeConsulta.textContent = "Tienes " + datos.sellos + " de 10 sellos.";
-
-    document.querySelectorAll(".sello").forEach((sello, indice) => {
-      sello.style.backgroundColor =
-        indice < datos.sellos ? "#a77688" : "";
+    botonConsultar.addEventListener("click", () => {
+      consultarTarjeta(codigoTarjeta.value.trim());
+    });
+    codigoTarjeta.addEventListener("keydown", (evento) => {
+      if (evento.key === "Enter") consultarTarjeta(codigoTarjeta.value.trim());
     });
 
-  } catch (error) {
-    mensajeConsulta.textContent = error.message;
-  } finally {
-    botonConsultar.disabled = false;
-  }
-});
-
+    // Un enlace como index.html?codigo=CODIGO_UNICO consulta la tarjeta automáticamente.
+    const codigoEnlace = new URLSearchParams(window.location.search).get("codigo");
+    if (codigoEnlace && codigoEnlace.trim()) {
+      consultarTarjeta(codigoEnlace.trim(), true);
+    }
   </script>
 </body>
 </html>
