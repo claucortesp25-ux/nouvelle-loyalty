@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -186,7 +187,7 @@
           } catch (error) {
             console.error(error);
             alert("No se pudo modificar el sello. Intenta de nuevo.");
-          } finally { actualizarFila(); }
+          } finally { actualizarFila(); actualizarCanjes(); }
         }
         agregar.addEventListener("click", () => cambiarSello(1));
         quitar.addEventListener("click", () => cambiarSello(-1));
@@ -210,6 +211,57 @@
         verQR.addEventListener("click", () => alternarQR(clienta, qr, verQR));
         compartir.append(copiar, verQR);
         fila.append(compartir, qr);
+        const recompensas = document.createElement("div");
+        recompensas.style.marginTop = "16px";
+        const tituloRecompensas = document.createElement("strong");
+        tituloRecompensas.textContent = "Canjear recompensa";
+        recompensas.appendChild(tituloRecompensas);
+        const opciones = [
+          { servicio: 2, descuento: 10 },
+          { servicio: 5, descuento: 15 },
+          { servicio: 8, descuento: 10 },
+          { servicio: 10, descuento: 50 }
+        ];
+        const botonesCanje = [];
+        let procesando = false;
+        function actualizarCanjes() {
+          for (const { boton, servicio } of botonesCanje) {
+            boton.disabled = procesando || clienta.sellos !== servicio;
+          }
+        }
+        for (const { servicio, descuento } of opciones) {
+          const boton = document.createElement("button");
+          boton.type = "button";
+          boton.className = "secundario";
+          boton.textContent = `Canjear ${descuento}% · Servicio ${servicio}`;
+          botonesCanje.push({ boton, servicio });
+          boton.addEventListener("click", async () => {
+            if (procesando || clienta.sellos !== servicio) return;
+            if (!confirm(`¿Confirmas que ${clienta.nombre} utilizó el ${descuento}% de descuento en su servicio ${servicio}?${servicio === 10 ? " Su tarjeta volverá a 0 sellos." : ""}`)) return;
+            procesando = true;
+            agregar.disabled = quitar.disabled = true;
+            actualizarCanjes();
+            try {
+              const { data, error } = await supabase.rpc("admin_canjear_recompensa", {
+                p_clienta_id: clienta.id,
+                p_servicio: servicio
+              });
+              if (error) throw error;
+              alert(`Canje del ${descuento}% registrado correctamente.${servicio === 10 ? " La tarjeta comenzó un nuevo ciclo." : ""}`);
+              await cargarClientas();
+            } catch (error) {
+              console.error(error);
+              alert("No se pudo registrar el canje. Comprueba que corresponda a este servicio y que no se haya canjeado antes.");
+            } finally {
+              procesando = false;
+              actualizarFila();
+              actualizarCanjes();
+            }
+          });
+          recompensas.appendChild(boton);
+        }
+        actualizarCanjes();
+        fila.appendChild(recompensas);
         lista.appendChild(fila);
       }
     }
