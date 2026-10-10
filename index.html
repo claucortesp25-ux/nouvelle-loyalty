@@ -92,6 +92,30 @@
     <section class="tarjeta">
       <h2>Mi tarjeta Nouvelle</h2>
       <p>10 servicios, beneficios especiales para ti.</p>
+      
+<div style="margin: 25px 0; text-align: center;">
+  <label for="codigoTarjeta">Consulta tu tarjeta de lealtad</label>
+
+  <input
+    type="text"
+    id="codigoTarjeta"
+    placeholder="Ingresa tu código único"
+    autocomplete="off"
+    style="width: 100%; padding: 14px; margin-top: 12px; border: 1px solid #d8cbd2; border-radius: 10px;"
+  >
+
+  <button
+    type="button"
+    id="botonConsultar"
+    style="margin-top: 12px; padding: 14px 25px; background: #a77688; color: white; border: none; border-radius: 10px; cursor: pointer;"
+  >
+    Consultar mi tarjeta
+  </button>
+
+  <p id="mensajeConsulta" role="status" aria-live="polite"></p>
+  <h3 id="nombreClienta"></h3>
+</div>
+
 
       <div class="sellos" id="sellos"></div>
 
