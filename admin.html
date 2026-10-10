@@ -82,7 +82,17 @@
       $("mensaje").textContent = "Acceso autorizado. Bienvenida a Nouvelle.";
     }
 
-    async function verificarAdministradora() {
+    
+async function verificarAdministradora() {
+  const { data, error } = await supabase.rpc("es_admin");
+
+  if (error) {
+    console.error("Error al verificar administradora:", error);
+    return false;
+  }
+
+  return data === true;
+}
      
 const { data: clientas, error } =
   await supabase.rpc("admin_listar_clientas");
