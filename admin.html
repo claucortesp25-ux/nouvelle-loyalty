@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -7,205 +6,224 @@
   <title>Nouvelle | Administración</title>
   <style>
     * { box-sizing: border-box; }
-    body {
-      margin: 0;
-      min-height: 100vh;
-      display: grid;
-      place-items: center;
-      background: #faf7f5;
-      color: #51474b;
-      font-family: Arial, sans-serif;
-    }
-    .panel {
-      width: min(90%, 420px);
-      background: white;
-      padding: 40px 30px;
-      border: 1px solid #eadfe3;
-      border-radius: 18px;
-      text-align: center;
-    }
-    h1 {
-      font-family: Georgia, serif;
-      letter-spacing: 5px;
-      font-size: 32px;
-    }
-    .subtitulo {
-      font-size: 12px;
-      letter-spacing: 2px;
-    }
-    h2 { margin-top: 35px; }
-    input, button {
-      width: 100%;
-      padding: 14px;
-      margin-top: 14px;
-      border-radius: 8px;
-      font-size: 15px;
-    }
+    body { margin: 0; min-height: 100vh; display: grid; place-items: center; padding: 24px 0; background: #faf7f5; color: #51474b; font-family: Arial, sans-serif; }
+    .panel { width: min(92%, 540px); background: white; padding: 36px 26px; border: 1px solid #eadfe3; border-radius: 18px; text-align: center; }
+    h1 { font-family: Georgia, serif; letter-spacing: 5px; font-size: 32px; }
+    .subtitulo { font-size: 12px; letter-spacing: 2px; }
+    h2 { margin-top: 30px; }
+    input, button { width: 100%; padding: 13px; margin-top: 12px; border-radius: 8px; font-size: 15px; }
     input { border: 1px solid #ddd; }
-    button {
-      background: #b9859c;
-      border: none;
-      color: white;
-      cursor: pointer;
-    }
-    #mensaje { margin-top: 16px; }
+    button { background: #b9859c; border: none; color: white; cursor: pointer; }
+    button:disabled { opacity: .5; cursor: not-allowed; }
+    button.secundario { background: #eee4e8; color: #51474b; }
+    .oculto { display: none; }
+    .tarjeta { text-align: left; border: 1px solid #eadfe3; border-radius: 12px; padding: 16px; margin-top: 14px; overflow-wrap: anywhere; }
+    .tarjeta p { margin: 6px 0; }
+    .acciones { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+    .acciones button { font-size: 13px; }
+    #mensaje, #mensajeRegistro, #mensajeLista { margin-top: 14px; }
+    .codigo { font-family: monospace; font-size: 12px; overflow-wrap: anywhere; }
   </style>
 </head>
 <body>
   <main class="panel">
     <h1>NOUVELLE</h1>
-    <p class="subtitulo">SPA & MEDICINA ESTÉTICA</p>
-    <h2>Acceso administrativo</h2>
-    <p>Ingresa tus credenciales para continuar</p>
+    <p class="subtitulo">SPA &amp; MEDICINA ESTÉTICA</p>
 
-    <form id="login">
-      <input id="correo" type="email"
-        placeholder="Correo electrónico"
-        autocomplete="username" required>
+    <section id="seccionLogin">
+      <h2>Acceso administrativo</h2>
+      <p>Ingresa tus credenciales para continuar</p>
+      <form id="login">
+        <input id="correo" type="email" placeholder="Correo electrónico" autocomplete="username" required>
+        <input id="password" type="password" placeholder="Contraseña" autocomplete="current-password" required>
+        <button id="botonLogin" type="submit">Iniciar sesión</button>
+      </form>
+    </section>
+    <p id="mensaje" role="status" aria-live="polite"></p>
 
-      <input id="password" type="password"
-        placeholder="Contraseña"
-        autocomplete="current-password" required>
+    <section id="administracion" class="oculto">
+      <h2>Registrar nueva clienta</h2>
+      <form id="formRegistro">
+        <input id="nombreNueva" type="text" placeholder="Nombre de la clienta" maxlength="120" minlength="2" autocomplete="off" required>
+        <button id="botonRegistrar" type="submit">+ Registrar clienta</button>
+      </form>
+      <p id="mensajeRegistro" role="status" aria-live="polite"></p>
+      <div id="resultadoRegistro" class="oculto tarjeta"></div>
 
-      <button type="submit">Iniciar sesión</button>
-    </form>
-
-    <p id="mensaje" role="status"></p>
+      <h2>Clientas Nouvelle</h2>
+      <button id="botonActualizar" type="button" class="secundario">Actualizar lista</button>
+      <p id="mensajeLista" role="status" aria-live="polite"></p>
+      <div id="listaClientas"></div>
+      <button id="cerrarSesion" type="button" class="secundario">Cerrar sesión</button>
+    </section>
   </main>
 
-<script type="module">
-  import { createClient } from
-    "https://esm.sh/@supabase/supabase-js@2";
+  <script type="module">
+    import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
-  const supabaseUrl =
-    "https://xfzffvughevcdioqqwev.supabase.co";
+    const supabase = createClient(
+      "https://xfzffvughevcdioqqwev.supabase.co",
+      "sb_publishable_117jiDznI5BbuT9SpwQPmA_yNNHvNI6"
+    );
 
-  const supabaseKey =
-    "sb_publishable_117jiDznI5BbuT9SpwQPmA_yNNHvNI6";
+    const $ = (id) => document.getElementById(id);
+    let administradora = false;
 
-  const supabase = createClient(
-    supabaseUrl,
-    supabaseKey
-  );
-
-  const mensaje = document.getElementById("mensaje");
-
-  document.getElementById("login")
-    .addEventListener("submit", async (evento) => {
-      evento.preventDefault();
-
-      const email =
-        document.getElementById("correo").value;
-
-      const password =
-        document.getElementById("password").value;
-
-      mensaje.textContent = "Verificando acceso...";
-
-      const { data, error } =
-        await supabase.auth.signInWithPassword({
-          email,
-          password
-        });
-
-      if (error) {
-        mensaje.textContent =
-          "Correo o contraseña incorrectos.";
-        return;
-      }
-
-      const { data: autorizado, error: errorAdmin } =
-        await supabase.rpc("es_admin");
-
-      if (errorAdmin || autorizado !== true) {
-        await supabase.auth.signOut();
-        mensaje.textContent =
-          "Esta cuenta no tiene acceso administrativo.";
-        return;
-      }
-
-      mensaje.textContent =
-        "Acceso autorizado. Bienvenida a Nouvelle.";
-      
-const { data: clientas, error: errorClientas } =
-  await supabase.rpc("admin_listar_clientas");
-
-if (errorClientas) {
-  mensaje.textContent =
-    "Acceso autorizado, pero no se pudieron cargar las clientas.";
-  console.error(errorClientas);
-  return;
-}
-
-const panel = document.createElement("section");
-panel.style.marginTop = "25px";
-
-const titulo = document.createElement("h2");
-titulo.textContent = "Clientas Nouvelle";
-panel.appendChild(titulo);
-
-const lista = document.createElement("div");
-panel.appendChild(lista);
-
-
-for (const clienta of clientas ?? []) {
-  const fila = document.createElement("div");
-  fila.style.marginBottom = "20px";
-
-  const info = document.createElement("p");
-  info.textContent =
-    `${clienta.nombre} — ${clienta.sellos} de 10 sellos`;
-
-  const agregar = document.createElement("button");
-  agregar.textContent = "+ Agregar sello";
-
-  const quitar = document.createElement("button");
-  quitar.textContent = "− Quitar sello";
-  quitar.style.marginLeft = "10px";
-
-  async function cambiarSello(cambio) {
-    agregar.disabled = true;
-    quitar.disabled = true;
-
-    try {
-      const { data, error } = await supabase.rpc(
-        "admin_actualizar_sellos",
-        {
-          p_clienta_id: clienta.id,
-          p_cambio: cambio
-        }
-      );
-
-      if (error) throw error;
-
-      clienta.sellos = data;
-      info.textContent =
-        `${clienta.nombre} — ${data} de 10 sellos`;
-    } catch (error) {
-      console.error(error);
-      alert("No se pudo modificar el sello.");
-    } finally {
-      agregar.disabled = clienta.sellos >= 10;
-      quitar.disabled = clienta.sellos <= 0;
+    function mostrarPanel() {
+      $("seccionLogin").classList.add("oculto");
+      $("administracion").classList.remove("oculto");
+      $("mensaje").textContent = "Acceso autorizado. Bienvenida a Nouvelle.";
     }
-  }
 
-  agregar.addEventListener("click", () => cambiarSello(1));
-  quitar.addEventListener("click", () => cambiarSello(-1));
+    async function verificarAdministradora() {
+      const { data, error } = await supabase.rpc("es_admin");
+      return !error && data === true;
+    }
 
-  agregar.disabled = clienta.sellos >= 10;
-  quitar.disabled = clienta.sellos <= 0;
+    async function cargarClientas() {
+      if (!administradora) return;
+      $("mensajeLista").textContent = "Cargando clientas...";
+      const { data: clientas, error } = await supabase.rpc("admin_listar_clientas");
+      if (error) {
+        console.error(error);
+        $("mensajeLista").textContent = "No se pudieron cargar las clientas.";
+        return;
+      }
+      const lista = $("listaClientas");
+      lista.replaceChildren();
+      $("mensajeLista").textContent = clientas?.length ? "" : "Aún no hay clientas registradas.";
 
-  fila.appendChild(info);
-  fila.appendChild(agregar);
-  fila.appendChild(quitar);
-  lista.appendChild(fila);
-}
+      for (const clienta of clientas ?? []) {
+        const fila = document.createElement("div");
+        fila.className = "tarjeta";
+        const info = document.createElement("p");
+        const codigo = document.createElement("p");
+        codigo.className = "codigo";
+        codigo.textContent = `Código: ${clienta.codigo_tarjeta ?? "No disponible"}`;
+        const acciones = document.createElement("div");
+        acciones.className = "acciones";
+        const agregar = document.createElement("button");
+        agregar.type = "button";
+        agregar.textContent = "+ Agregar sello";
+        const quitar = document.createElement("button");
+        quitar.type = "button";
+        quitar.textContent = "− Quitar sello";
+        quitar.className = "secundario";
 
-mensaje.insertAdjacentElement("afterend", panel);
+        function actualizarFila() {
+          info.textContent = `${clienta.nombre} — ${clienta.sellos} de 10 sellos`;
+          agregar.disabled = clienta.sellos >= 10;
+          quitar.disabled = clienta.sellos <= 0;
+        }
 
+        async function cambiarSello(cambio) {
+          agregar.disabled = true;
+          quitar.disabled = true;
+          try {
+            const { data, error } = await supabase.rpc("admin_actualizar_sellos", {
+              p_clienta_id: clienta.id,
+              p_cambio: cambio
+            });
+            if (error) throw error;
+            clienta.sellos = data;
+            actualizarFila();
+          } catch (error) {
+            console.error(error);
+            alert("No se pudo modificar el sello. Intenta de nuevo.");
+          } finally {
+            actualizarFila();
+          }
+        }
+
+        agregar.addEventListener("click", () => cambiarSello(1));
+        quitar.addEventListener("click", () => cambiarSello(-1));
+        actualizarFila();
+        acciones.append(agregar, quitar);
+        fila.append(info, codigo, acciones);
+        lista.appendChild(fila);
+      }
+    }
+
+    $("login").addEventListener("submit", async (evento) => {
+      evento.preventDefault();
+      $("botonLogin").disabled = true;
+      $("mensaje").textContent = "Verificando acceso...";
+      try {
+        const { error } = await supabase.auth.signInWithPassword({
+          email: $("correo").value.trim(),
+          password: $("password").value
+        });
+        if (error) {
+          $("mensaje").textContent = "Correo o contraseña incorrectos.";
+          return;
+        }
+        if (!(await verificarAdministradora())) {
+          await supabase.auth.signOut();
+          $("mensaje").textContent = "Esta cuenta no tiene acceso administrativo.";
+          return;
+        }
+        administradora = true;
+        $("password").value = "";
+        mostrarPanel();
+        await cargarClientas();
+      } catch (error) {
+        console.error(error);
+        $("mensaje").textContent = "No se pudo verificar el acceso.";
+      } finally {
+        $("botonLogin").disabled = false;
+      }
     });
 
+    $("formRegistro").addEventListener("submit", async (evento) => {
+      evento.preventDefault();
+      if (!administradora) return;
+      const nombre = $("nombreNueva").value.trim();
+      if (nombre.length < 2 || nombre.length > 120) {
+        $("mensajeRegistro").textContent = "Escribe un nombre válido (2 a 120 caracteres).";
+        return;
+      }
+      $("botonRegistrar").disabled = true;
+      $("mensajeRegistro").textContent = "Registrando clienta...";
+      $("resultadoRegistro").classList.add("oculto");
+      try {
+        const { data, error } = await supabase.rpc("admin_registrar_clienta", {
+          p_nombre: nombre
+        });
+        if (error) throw error;
+        const clienta = Array.isArray(data) ? data[0] : data;
+        if (!clienta) throw new Error("No se recibió la clienta registrada.");
+        $("mensajeRegistro").textContent = "¡Clienta registrada correctamente!";
+        const resultado = $("resultadoRegistro");
+        resultado.replaceChildren();
+        const titulo = document.createElement("strong");
+        titulo.textContent = clienta.nombre;
+        const codigo = document.createElement("p");
+        codigo.className = "codigo";
+        codigo.textContent = `Código de tarjeta: ${clienta.codigo_tarjeta}`;
+        const sellos = document.createElement("p");
+        sellos.textContent = `${clienta.sellos} de 10 sellos`;
+        resultado.append(titulo, codigo, sellos);
+        resultado.classList.remove("oculto");
+        $("nombreNueva").value = "";
+        await cargarClientas();
+      } catch (error) {
+        console.error(error);
+        $("mensajeRegistro").textContent = "No se pudo registrar la clienta. Revisa la configuración o inténtalo de nuevo.";
+      } finally {
+        $("botonRegistrar").disabled = false;
+      }
+    });
+
+    $("botonActualizar").addEventListener("click", cargarClientas);
+    $("cerrarSesion").addEventListener("click", async () => {
+      await supabase.auth.signOut();
+      administradora = false;
+      $("administracion").classList.add("oculto");
+      $("seccionLogin").classList.remove("oculto");
+      $("mensaje").textContent = "Sesión cerrada.";
+      $("resultadoRegistro").classList.add("oculto");
+      $("listaClientas").replaceChildren();
+    });
   </script>
 </body>
 </html>
