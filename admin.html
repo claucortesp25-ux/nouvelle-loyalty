@@ -126,6 +126,36 @@
 
       mensaje.textContent =
         "Acceso autorizado. Bienvenida a Nouvelle.";
+      
+const { data: clientas, error: errorClientas } =
+  await supabase.rpc("admin_listar_clientas");
+
+if (errorClientas) {
+  mensaje.textContent =
+    "Acceso autorizado, pero no se pudieron cargar las clientas.";
+  console.error(errorClientas);
+  return;
+}
+
+const panel = document.createElement("section");
+panel.style.marginTop = "25px";
+
+const titulo = document.createElement("h2");
+titulo.textContent = "Clientas Nouvelle";
+panel.appendChild(titulo);
+
+const lista = document.createElement("div");
+panel.appendChild(lista);
+
+for (const clienta of clientas ?? []) {
+  const fila = document.createElement("p");
+  fila.textContent =
+    `${clienta.nombre} — ${clienta.sellos} de 10 sellos`;
+  lista.appendChild(fila);
+}
+
+mensaje.insertAdjacentElement("afterend", panel);
+
     });
 
   </script>
