@@ -83,7 +83,19 @@
     }
 
     async function verificarAdministradora() {
-      const { data, error } = await supabase.rpc("es_admin");
+     
+const { data: clientas, error } =
+  await supabase.rpc("admin_listar_clientas");
+
+const { data: historialCanjes, error: errorCanjes } =
+  await supabase.rpc("admin_listar_canjes");
+
+if (errorCanjes) {
+  console.error("Error al consultar canjes:", errorCanjes);
+  $("mensajeLista").textContent =
+    "No se pudo consultar el historial de recompensas.";
+  return;
+}
       return !error && data === true;
     }
 
@@ -144,6 +156,16 @@
     async function cargarClientas() {
       if (!administradora) return;
       $("mensajeLista").textContent = "Cargando clientas...";
+      
+const { data: historialCanjes, error: errorCanjes } =
+  await supabase.rpc("admin_listar_canjes");
+
+if (errorCanjes) {
+  console.error(errorCanjes);
+  $("mensajeLista").textContent =
+    "No se pudo cargar el historial de recompensas.";
+  return;
+}
       const { data: clientas, error } = await supabase.rpc("admin_listar_clientas");
       if (error) {
         console.error(error);
@@ -155,6 +177,16 @@
       $("mensajeLista").textContent = clientas?.length ? "" : "Aún no hay clientas registradas.";
 
       for (const clienta of clientas ?? []) {
+        
+const canjesRealizados = (historialCanjes ?? []).filter(
+  (canje) =>
+    Number(canje.clienta_id) === Number(clienta.id) &&
+    Number(canje.ciclo) === Number(clienta.ciclo)
+);
+
+const serviciosCanjeados = new Set(
+  canjesRealizados.map((canje) => Number(canje.servicio))
+);
         const fila = document.createElement("div");
         fila.className = "tarjeta";
         const info = document.createElement("p");
@@ -226,7 +258,12 @@
         let procesando = false;
         function actualizarCanjes() {
           for (const { boton, servicio } of botonesCanje) {
-            boton.disabled = procesando || clienta.sellos !== servicio;
+            
+boton.disabled = procesando || clienta.sellos !== servicio || serviciosCanjeados.has(servicio);
+boton.textContent = serviciosCanjeados.has(servicio)
+  ? `✓ Descuento ya canjeado · Servicio ${servicio}`
+  : `Canjear ${servicio === 5 ? 15 : servicio === 10 ? 50 : 10}% · Servicio ${servicio}`;
+
           }
         }
         for (const { servicio, descuento } of opciones) {
@@ -248,6 +285,9 @@
               });
               if (error) throw error;
               alert(`Canje del ${descuento}% registrado correctamente.${servicio === 10 ? " La tarjeta comenzó un nuevo ciclo." : ""}`);
+              
+serviciosCanjeados.add(servicio);
+
               await cargarClientas();
             } catch (error) {
               console.error(error);
