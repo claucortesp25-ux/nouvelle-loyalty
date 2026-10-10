@@ -23,13 +23,15 @@
     .acciones button { font-size: 13px; }
     #mensaje, #mensajeRegistro, #mensajeLista { margin-top: 14px; }
     .codigo { font-family: monospace; font-size: 12px; overflow-wrap: anywhere; }
+    .qr-contenedor { text-align: center; padding: 18px 8px; background: #fffafc; border: 1px solid #eadfe3; border-radius: 12px; margin-top: 12px; }
+    .qr-contenedor canvas { display: block; margin: 12px auto; max-width: 100%; height: auto; }
+    .qr-contenedor p { font-size: 13px; }
   </style>
 </head>
 <body>
   <main class="panel">
     <h1>NOUVELLE</h1>
     <p class="subtitulo">SPA &amp; MEDICINA ESTÉTICA</p>
-
     <section id="seccionLogin">
       <h2>Acceso administrativo</h2>
       <p>Ingresa tus credenciales para continuar</p>
@@ -40,7 +42,6 @@
       </form>
     </section>
     <p id="mensaje" role="status" aria-live="polite"></p>
-
     <section id="administracion" class="oculto">
       <h2>Registrar nueva clienta</h2>
       <form id="formRegistro">
@@ -49,7 +50,6 @@
       </form>
       <p id="mensajeRegistro" role="status" aria-live="polite"></p>
       <div id="resultadoRegistro" class="oculto tarjeta"></div>
-
       <h2>Clientas Nouvelle</h2>
       <button id="botonActualizar" type="button" class="secundario">Actualizar lista</button>
       <p id="mensajeLista" role="status" aria-live="polite"></p>
@@ -57,17 +57,23 @@
       <button id="cerrarSesion" type="button" class="secundario">Cerrar sesión</button>
     </section>
   </main>
-
   <script type="module">
     import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+    import QRCode from "https://esm.sh/qrcode@1.5.4";
 
     const supabase = createClient(
       "https://xfzffvughevcdioqqwev.supabase.co",
       "sb_publishable_117jiDznI5BbuT9SpwQPmA_yNNHvNI6"
     );
-
     const $ = (id) => document.getElementById(id);
+    const URL_TARJETA = "https://claucortesp25-ux.github.io/nouvelle-loyalty/";
     let administradora = false;
+
+    function enlaceDeTarjeta(codigo) {
+      const url = new URL(URL_TARJETA);
+      url.searchParams.set("codigo", codigo);
+      return url.toString();
+    }
 
     function mostrarPanel() {
       $("seccionLogin").classList.add("oculto");
@@ -78,6 +84,60 @@
     async function verificarAdministradora() {
       const { data, error } = await supabase.rpc("es_admin");
       return !error && data === true;
+    }
+
+    async function copiarEnlace(codigo, boton) {
+      if (!codigo) return;
+      const enlace = enlaceDeTarjeta(codigo);
+      try {
+        await navigator.clipboard.writeText(enlace);
+        boton.textContent = "¡Enlace copiado!";
+        setTimeout(() => { boton.textContent = "Copiar enlace"; }, 2500);
+      } catch (error) {
+        console.error(error);
+        window.prompt("Copia este enlace para compartirlo:", enlace);
+      }
+    }
+
+    async function alternarQR(clienta, contenedor, boton) {
+      if (!contenedor.classList.contains("oculto")) {
+        contenedor.classList.add("oculto");
+        boton.textContent = "Ver QR";
+        return;
+      }
+      contenedor.replaceChildren();
+      const titulo = document.createElement("strong");
+      titulo.textContent = "NOUVELLE";
+      const subtitulo = document.createElement("p");
+      subtitulo.textContent = `Tarjeta de ${clienta.nombre}`;
+      const canvas = document.createElement("canvas");
+      const aviso = document.createElement("p");
+      aviso.textContent = "Escanea este código para consultar la tarjeta.";
+      contenedor.append(titulo, subtitulo, canvas, aviso);
+      contenedor.classList.remove("oculto");
+      boton.textContent = "Ocultar QR";
+      try {
+        await QRCode.toCanvas(canvas, enlaceDeTarjeta(clienta.codigo_tarjeta), {
+          width: 260,
+          margin: 4,
+          color: { dark: "#8d4f68", light: "#ffffff" },
+          errorCorrectionLevel: "H"
+        });
+        const descargar = document.createElement("button");
+        descargar.type = "button";
+        descargar.className = "secundario";
+        descargar.textContent = "Descargar QR (PNG)";
+        descargar.addEventListener("click", () => {
+          const a = document.createElement("a");
+          a.href = canvas.toDataURL("image/png");
+          a.download = `nouvelle-qr-${clienta.id}.png`;
+          a.click();
+        });
+        contenedor.appendChild(descargar);
+      } catch (error) {
+        console.error(error);
+        aviso.textContent = "No se pudo generar el QR. Comprueba tu conexión a internet.";
+      }
     }
 
     async function cargarClientas() {
@@ -109,37 +169,47 @@
         quitar.type = "button";
         quitar.textContent = "− Quitar sello";
         quitar.className = "secundario";
-
         function actualizarFila() {
           info.textContent = `${clienta.nombre} — ${clienta.sellos} de 10 sellos`;
           agregar.disabled = clienta.sellos >= 10;
           quitar.disabled = clienta.sellos <= 0;
         }
-
         async function cambiarSello(cambio) {
           agregar.disabled = true;
           quitar.disabled = true;
           try {
             const { data, error } = await supabase.rpc("admin_actualizar_sellos", {
-              p_clienta_id: clienta.id,
-              p_cambio: cambio
+              p_clienta_id: clienta.id, p_cambio: cambio
             });
             if (error) throw error;
             clienta.sellos = data;
-            actualizarFila();
           } catch (error) {
             console.error(error);
             alert("No se pudo modificar el sello. Intenta de nuevo.");
-          } finally {
-            actualizarFila();
-          }
+          } finally { actualizarFila(); }
         }
-
         agregar.addEventListener("click", () => cambiarSello(1));
         quitar.addEventListener("click", () => cambiarSello(-1));
         actualizarFila();
         acciones.append(agregar, quitar);
         fila.append(info, codigo, acciones);
+
+        const compartir = document.createElement("div");
+        compartir.className = "acciones";
+        const copiar = document.createElement("button");
+        copiar.type = "button";
+        copiar.className = "secundario";
+        copiar.textContent = "Copiar enlace";
+        const verQR = document.createElement("button");
+        verQR.type = "button";
+        verQR.textContent = "Ver QR";
+        const qr = document.createElement("div");
+        qr.className = "qr-contenedor oculto";
+        copiar.disabled = verQR.disabled = !clienta.codigo_tarjeta;
+        copiar.addEventListener("click", () => copiarEnlace(clienta.codigo_tarjeta, copiar));
+        verQR.addEventListener("click", () => alternarQR(clienta, qr, verQR));
+        compartir.append(copiar, verQR);
+        fila.append(compartir, qr);
         lista.appendChild(fila);
       }
     }
@@ -150,8 +220,7 @@
       $("mensaje").textContent = "Verificando acceso...";
       try {
         const { error } = await supabase.auth.signInWithPassword({
-          email: $("correo").value.trim(),
-          password: $("password").value
+          email: $("correo").value.trim(), password: $("password").value
         });
         if (error) {
           $("mensaje").textContent = "Correo o contraseña incorrectos.";
@@ -169,9 +238,7 @@
       } catch (error) {
         console.error(error);
         $("mensaje").textContent = "No se pudo verificar el acceso.";
-      } finally {
-        $("botonLogin").disabled = false;
-      }
+      } finally { $("botonLogin").disabled = false; }
     });
 
     $("formRegistro").addEventListener("submit", async (evento) => {
@@ -186,9 +253,7 @@
       $("mensajeRegistro").textContent = "Registrando clienta...";
       $("resultadoRegistro").classList.add("oculto");
       try {
-        const { data, error } = await supabase.rpc("admin_registrar_clienta", {
-          p_nombre: nombre
-        });
+        const { data, error } = await supabase.rpc("admin_registrar_clienta", { p_nombre: nombre });
         if (error) throw error;
         const clienta = Array.isArray(data) ? data[0] : data;
         if (!clienta) throw new Error("No se recibió la clienta registrada.");
@@ -209,9 +274,7 @@
       } catch (error) {
         console.error(error);
         $("mensajeRegistro").textContent = "No se pudo registrar la clienta. Revisa la configuración o inténtalo de nuevo.";
-      } finally {
-        $("botonRegistrar").disabled = false;
-      }
+      } finally { $("botonRegistrar").disabled = false; }
     });
 
     $("botonActualizar").addEventListener("click", cargarClientas);
