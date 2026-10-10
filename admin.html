@@ -1,0 +1,85 @@
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Nouvelle | Administración</title>
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      display: grid;
+      place-items: center;
+      background: #faf7f5;
+      color: #51474b;
+      font-family: Arial, sans-serif;
+    }
+    .panel {
+      width: min(90%, 420px);
+      background: white;
+      padding: 40px 30px;
+      border: 1px solid #eadfe3;
+      border-radius: 18px;
+      text-align: center;
+    }
+    h1 {
+      font-family: Georgia, serif;
+      letter-spacing: 5px;
+      font-size: 32px;
+    }
+    .subtitulo {
+      font-size: 12px;
+      letter-spacing: 2px;
+    }
+    h2 { margin-top: 35px; }
+    input, button {
+      width: 100%;
+      padding: 14px;
+      margin-top: 14px;
+      border-radius: 8px;
+      font-size: 15px;
+    }
+    input { border: 1px solid #ddd; }
+    button {
+      background: #b9859c;
+      border: none;
+      color: white;
+      cursor: pointer;
+    }
+    #mensaje { margin-top: 16px; }
+  </style>
+</head>
+<body>
+  <main class="panel">
+    <h1>NOUVELLE</h1>
+    <p class="subtitulo">SPA & MEDICINA ESTÉTICA</p>
+    <h2>Acceso administrativo</h2>
+    <p>Ingresa tus credenciales para continuar</p>
+
+    <form id="login">
+      <input id="correo" type="email"
+        placeholder="Correo electrónico"
+        autocomplete="username" required>
+
+      <input id="password" type="password"
+        placeholder="Contraseña"
+        autocomplete="current-password" required>
+
+      <button type="submit">Iniciar sesión</button>
+    </form>
+
+    <p id="mensaje" role="status"></p>
+  </main>
+
+  <script>
+    document.getElementById("login")
+      .addEventListener("submit", (evento) => {
+        evento.preventDefault();
+        document.getElementById("mensaje").textContent =
+          "Pantalla creada. Falta conectar la autenticación segura.";
+      });
+  </script>
+</body>
+</html>
